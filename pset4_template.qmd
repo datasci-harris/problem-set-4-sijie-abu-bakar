@@ -157,19 +157,249 @@ These two plots are the same. It means that the CMS certification number corresp
 
 ## Identify hospital closures in POS file (15 pts) (*)
 
-1. 
-2. 
-3. 
+1.  
+
+```{python}
+hospital_active2016 = pos2016_short[pos2016_short["PGM_TRMNTN_CD"] == 0]["PRVDR_NUM"].unique()
+hospital_close_suspect = []
+for hospital_id in hospital_active2016:
+    hospital_data = pos_merge[pos_merge["PRVDR_NUM"] == hospital_id].sort_values(by="year")
+    closed = False
+    for year in range(2017, 2020):  # 2017 to 2019
+        year_data = hospital_data[hospital_data["year"] == year]
+        if year_data.empty or (year_data["PGM_TRMNTN_CD"].iloc[0] != 0):
+            # If hospital data is missing or not active in this year, record closure details
+            facility_name = hospital_data["FAC_NAME"].iloc[0]
+            zip_code = hospital_data["ZIP_CD"].iloc[0]
+            hospital_close_suspect.append({
+                "PRVDR_NUM": hospital_id,
+                "FAC_NAME": facility_name,
+                "ZIP_CD": zip_code,
+                "year": year
+            })
+            closed = True
+            break 
+
+hospital_close_suspect = pd.DataFrame(hospital_close_suspect)
+print(hospital_close_suspect)
+```
+
+There are 174 hospitals fit this definition.
+
+2.  
+
+```{python}
+hospital_close_suspect = hospital_close_suspect.sort_values(by = "FAC_NAME")
+
+hospital_close_top_10 = hospital_close_suspect[['FAC_NAME', 'year']].head(10)
+print(hospital_close_top_10)
+```
+
+3.  
+I devide the question into two steps, and use GPT by asking 1) how to count the active hospitals by ZIP code for each year; and 2) how to identity the zip codes that the number of hospitals do not decrease in the next year.
+```{python}
+# Step 1: Count active hospitals by ZIP code for each year (0 in PGM_TRMNTN_CD indicates "Active Provider")
+active_hospitals_by_zip = pos_merge[pos_merge["PGM_TRMNTN_CD"] == 0].groupby(
+    ["ZIP_CD", "year"])["PRVDR_NUM"].nunique().reset_index()
+active_hospitals_by_zip.columns = ["ZIP_CD", "year", "active_hospitals"]
+
+# Step 2: Identify ZIP codes to filter out
+zip_codes_to_filter = []
+for _, row in active_hospitals_by_zip.iterrows():
+    zip_code = row["ZIP_CD"]
+    current_year = row["year"]
+    current_count = row["active_hospitals"]
+
+    # Get count for the following year
+    next_year_data = active_hospitals_by_zip[(active_hospitals_by_zip["ZIP_CD"] == zip_code) & 
+                                             (active_hospitals_by_zip["year"] == current_year + 1)]
+    
+    if not next_year_data.empty:
+        next_year_count = next_year_data["active_hospitals"].values[0]
+        
+        # Check if the count does not decrease
+        if next_year_count >= current_count:
+            zip_codes_to_filter.append(zip_code)
+
+# Step 3: Filter out suspected closures in these ZIP codes
+corrected_closures = hospital_close_suspect[~hospital_close_suspect["ZIP_CD"].isin(zip_codes_to_filter)].reset_index()
+
+# Display the remaining suspected closures
+print(corrected_closures)
+
+```
+
     a.
+
+```{python}
+num_mergers = len(hospital_close_suspect) - len(corrected_closures)
+print(f"{num_mergers} suspected hospital closures that fit the definition of a merger/acquisition.")
+```
+
     b.
+
+```{python}
+num_corrected = len(corrected_closures)
+print(f"{num_corrected} corrected hospital closures is left after the filter.")
+```
+
     c.
+
+```{python}
+corrected_closures = corrected_closures.sort_values(by = "FAC_NAME")
+
+corrected_closures_top_10 = corrected_closures[['FAC_NAME', 'year']].head(10)
+print(corrected_closures_top_10)
+```
 
 ## Download Census zip code shapefile (10 pt) 
 
-1. 
+1.  
+
+```{python}
+import geopandas as gpd
+```
+
+
+
+```{python}
+filepath1 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.dbf"
+data1 = gpd.read_file(filepath1)
+data1.head()
+```
+
+
+I don't know how to open and look up a .prj file, so I ask GPT "how to open the .prj file", and it offers me the `with open` code.
+```{python}
+filepath2 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.prj"
+
+with open(filepath2, 'r') as file:
+    prj_content = file.read()
+    print(prj_content)
+```
+```{python}
+filepath3 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shp"
+data3 = gpd.read_file(filepath3)
+data3.head()
+```
+```{python}
+filepath4 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shx"
+data4 = gpd.read_file(filepath4)
+data4.head()
+```
+
+I don't know how to read a .xml file either, so I asked GPT "how to open the .xml file", and it offers me the `tree` and `root` code.
+```{python}
+import xml.etree.ElementTree as ET
+
+# Replace with the path to your .xml file
+filepath5 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.xml"
+
+# Parse the XML file
+tree = ET.parse(filepath5)
+root = tree.getroot()
+
+# Example: Print out the tags and text in the XML
+for elem in root.iter():
+    print(elem.tag, elem.text)
+
+```
+
     a.
+The five types are .dbf, .prj, .shp, .shx, .xml, respectively. .dbf, .shp, and .shx looks like a DataFrame and have the same content, including variables `CEO_ID`, `ZCTA5`, `NAME`, `LSAD`, `CENSUSAREA`, and `geometry`. .prj only contains a string, with values of `GEOGCS`, `PRIMEM`, `UNIT`. .xml is an Element type file, contains metadata and many texts.
+
+
     b. 
-2. 
+
+```{python}
+import os
+
+filepath_list = [
+    filepath1,
+    filepath2,
+    filepath3,
+    filepath4,
+    filepath5
+]
+
+for filepath in filepath_list:
+    file_name = os.path.basename(filepath)
+    file_size = os.path.getsize(filepath)
+    file_size_mb = file_size/(1024**2)
+    print(f"{file_name} size: {file_size_mb:.2f} MB")
+
+```
+
+2.  
+
+```{python}
+zip = data3
+zip.head()
+zip.shape
+```
+
+```{python}
+zip_tx = zip[zip["NAME"].str[:3].isin(["733"])|zip["NAME"].str[:2].isin(["75", "76", "77", "78", "79"])]
+zip_tx['ZIP_CD'] = zip_tx['ZCTA5']
+zip_tx.shape
+```
+```{python}
+zipcode_tx = zip_tx["ZIP_CD"].unique()
+zipcode_tx.shape
+```
+
+```{python}
+pos2016_short.head()
+```
+
+Below is all the hospitals counts in zip code nationwide.
+```{python}
+count_zip2016 = pos2016_short.groupby("ZIP_CD").size().reset_index(name = "hospital_count")
+count_zip2016
+```
+
+```{python}
+pos2016_tx = pos2016_short[pos2016_short["ZIP_CD"].astype(str).str[:3].isin(["733"])|pos2016_short["ZIP_CD"].astype(str).str[:2].isin(["75", "76", "77", "78", "79"])]
+
+pos2016_tx_zipcount = pos2016_tx.groupby("ZIP_CD").size().reset_index(name = "hospital_count")
+pos2016_tx_zipcount
+```
+
+```{python}
+pos2016_tx_zipcount = pd.DataFrame(pos2016_tx_zipcount)
+pos2016_tx_zipcount['ZIP_CD'] = pos2016_tx_zipcount['ZIP_CD'].fillna(0)
+pos2016_tx_zipcount.loc[:, 'ZIP_CD'] = pos2016_tx_zipcount['ZIP_CD'].astype(int).astype(str).str.zfill(5)
+```
+
+```{python}
+zip_tx = gpd.GeoDataFrame(zip_tx)
+zip_tx.loc[:, 'NAME'] = zip_tx['NAME'].astype(int).astype(str)
+```
+```{python}
+print(zip_tx.dtypes)  # Check types in zip_tx
+print(pos2016_tx.dtypes)
+```
+```{python}
+import matplotlib.pyplot as plt
+choropleth_data = zip_tx.merge(pos2016_tx_zipcount, on="ZIP_CD", how="left")
+choropleth_data.head()
+```
+
+```{python}
+choropleth_data.to_csv("choropleth_data.csv", index = False)
+```
+```{python}
+fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+choropleth_data.plot(column='hospital_count', ax=ax, legend=True,
+            legend_kwds={'label': "Number of Hospitals by Zip Code",
+                         'orientation': "horizontal"},
+            cmap='OrRd', missing_kwds={'color': 'lightgrey'})
+ax.set_title('Choropleth of Hospitals by Zip Code in Texas')
+ax.set_axis_off()
+
+plt.show()
+```
+
 
 ## Calculate zip code’s distance to the nearest hospital (20 pts) (*)
 
