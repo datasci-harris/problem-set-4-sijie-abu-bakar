@@ -403,12 +403,131 @@ plt.show()
 
 ## Calculate zip code’s distance to the nearest hospital (20 pts) (*)
 
-1. 
-2. 
-3. 
-4. 
+```{python}
+zips_all_centroids = zip.copy().to_crs(epsg=32614)
+zips_all_centroids["geometry"] = zips_all_centroids.centroid
+dimensions = zips_all_centroids.shape
+print(dimensions)
+zips_all_centroids.head()
+```
+
+The dimension of this GeoDataFrame is (33120, 6). For each column, `GEO_ID` is the id, `ZCTA5` is the zip code, `NAME` is the zip code as well, `CENSUSAREA` is the area, `geometry` is the centroid of each zip code.
+
+2.  
+
+```{python}
+texas_prefixes = ['75', '76', '77', '78', '79', '733']
+bordering_states_prefixes = texas_prefixes + ['73', '74', '70', '71', '87', '88']
+
+zips_texas_centroids = zips_all_centroids[zips_all_centroids['NAME'].str[:3].isin(['733']) | zips_all_centroids['NAME'].str[:2].isin(['75', '76', '77', '78', '79'])].copy()
+
+zips_texas_centroids = zips_texas_centroids.to_crs(epsg=32614)
+
+zips_texas_borderstates_centroids = zips_all_centroids[zips_all_centroids['NAME'].str[:2].isin(bordering_states_prefixes)].copy()
+
+zips_texas_borderstates_centroids = zips_texas_borderstates_centroids.to_crs(epsg=32614)
+
+texas_zip_count = zips_texas_centroids['NAME'].nunique()
+texas_borderstates_zip_count = zips_texas_borderstates_centroids['NAME'].nunique()
+
+print(f"There are {texas_zip_count} unique zip codes zips_texas_centroids subsets.")
+print(f"There are {texas_borderstates_zip_count} unique zip codes zips_texas_borderstates_centroids subsets.")
+```
+
+```{python}
+zips_texas_centroids.head()
+```
+
+3.  
+
+```{python}
+zips_texas_borderstates_centroids = zips_texas_borderstates_centroids.to_crs(epsg=32614)
+count_zip2016 = pd.DataFrame(count_zip2016)
+count_zip2016['ZIP_CD'] = count_zip2016['ZIP_CD'].fillna(0)
+count_zip2016.loc[:, 'ZIP_CD'] = count_zip2016['ZIP_CD'].astype(int).astype(str).str.zfill(5)
+zips_withhospital_centroids = zips_texas_borderstates_centroids.merge(
+    count_zip2016,
+    left_on='NAME',
+    right_on='ZIP_CD',
+    how='inner'
+)
+```
+
+I choose inner merge, with `NAME` variable for `zips_texas_borderstates_centroids` and `ZIP_CD` variable for `count_zip2016`. Both `NAME` and `ZIP_CD` represent the zip code.
+
+4.  
+
     a.
+
+```{python}
+zips_texas_centroids_10 = zips_texas_centroids.head(10)
+zips_texas_centroids_10 = zips_texas_centroids_10.to_crs(epsg=4326)
+zips_texas_centroids_10
+zips_withhospital_centroids = zips_withhospital_centroids.to_crs(epsg=4326)
+```
+
+```{python}
+
+# Convert both GeoDataFrames to a suitable projected CRS (NAD83 / Texas Central, EPSG:2272)
+zips_texas_centroids_10 = zips_texas_centroids_10.to_crs(epsg=2272)  
+zips_withhospital_centroids = zips_withhospital_centroids.to_crs(epsg=2272)
+
+import time
+start_time = time.time()
+
+nearest_distances = []
+
+# Calculate the nearest distance for each zip code
+for _, zip_row in zips_texas_centroids_10.iterrows():
+    # Calculate distance to all hospitals
+    distances = zips_withhospital_centroids.geometry.distance(zip_row.geometry)
+    # Get the minimum distance
+    nearest_distance = distances.min()
+    nearest_distances.append(nearest_distance)
+
+# Add the nearest distances to the GeoDataFrame
+zips_texas_centroids_10['nearest_hospital_distance'] = nearest_distances
+
+# View the updated GeoDataFrame
+print(zips_texas_centroids_10[['ZCTA5', 'nearest_hospital_distance']])
+
+end_time = time.time()
+print(f"Execution time: {end_time - start_time:.2f} seconds")
+```
+
+For 10 records, it takes 0.02 seconds. For there are 1935 records, I think the total calculation time is 0.02 * 193 = 4 seconds.
+
+
+
     b.
+```{python}
+start_time = time.time()
+
+nearest_distances = []
+
+# Calculate the nearest distance for each zip code
+for _, zip_row in zips_texas_centroids.iterrows():
+    # Calculate distance to all hospitals
+    distances = zips_withhospital_centroids.geometry.distance(zip_row.geometry)
+    # Get the minimum distance
+    nearest_distance = distances.min()
+    nearest_distances.append(nearest_distance)
+
+# Add the nearest distances to the GeoDataFrame
+zips_texas_centroids['nearest_hospital_distance'] = nearest_distances
+
+# View the updated GeoDataFrame
+print(zips_texas_centroids[['ZCTA5', 'nearest_hospital_distance']])
+
+end_time = time.time()
+print(f"Execution time: {end_time - start_time:.2f} seconds")
+```
+
+The difference is close.
+
+c.
+
+
 5. 
     a.
     b.
