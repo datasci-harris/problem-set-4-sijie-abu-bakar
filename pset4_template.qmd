@@ -59,7 +59,7 @@ import pandas as pd
 ```
 
 ```{python}
-filepath1 = "/Users/wsjsmac/Desktop/Autumn/PPHA_30538/mine/Pset_4/pos2016.csv"
+filepath1 = "pos2016.csv"
 pos2016 = pd.read_csv(filepath1)
 pos2016.head()
 pos2016["year"] = 2016
@@ -88,20 +88,18 @@ print(f"Number of unique FAC_NAME values: {unique_count1}")
 3.  
 
 ```{python}
-
-
-filepath2 = "/Users/wsjsmac/Desktop/Autumn/PPHA_30538/mine/Pset_4/pos2017.csv"
+filepath2 = "pos2017.csv"
 pos2017 = pd.read_csv(filepath2)
 pos2017["year"] = 2017
 pos2017_short = pos2017[(pos2017["PRVDR_CTGRY_CD"] == 1) & (pos2017["PRVDR_CTGRY_SBTYP_CD"] == 1)]
 
 
-filepath3 = "/Users/wsjsmac/Desktop/Autumn/PPHA_30538/mine/Pset_4/pos2018.csv"
+filepath3 = "pos2018.csv"
 pos2018 = pd.read_csv(filepath3, encoding='ISO-8859-1')
 pos2018["year"] = 2018
 pos2018_short = pos2018[(pos2018["PRVDR_CTGRY_CD"] == 1) & (pos2018["PRVDR_CTGRY_SBTYP_CD"] == 1)]
 
-filepath4 = "/Users/wsjsmac/Desktop/Autumn/PPHA_30538/mine/Pset_4/pos2019.csv"
+filepath4 = "pos2019.csv"
 pos2019 = pd.read_csv(filepath4, encoding='ISO-8859-1')
 pos2019["year"] = 2019
 pos2019_short = pos2019[(pos2019["PRVDR_CTGRY_CD"] == 1) & (pos2019["PRVDR_CTGRY_SBTYP_CD"] == 1)]
