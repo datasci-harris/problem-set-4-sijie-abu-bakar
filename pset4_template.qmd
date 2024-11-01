@@ -43,14 +43,119 @@ Please refer to the minilesson on code style
 
 ## Download and explore the Provider of Services (POS) file (10 pts)
 
-1. 
-2. 
-    a.
-    b.
-3. 
+1.  
+`PRVDR_CTGRY_SBTYP_CD` for provider subtype code;
+`PRVDR_CTGRY_CD` for provider type code;
+`PRVDR_NUM` for CMS Certification Number;
+`PGM_TRMNTN_CD` for Termination Code;
+`ZIP_CD` for zip code;
+`TRMNTN_EXPRTN_DT` for Termination Date;
+`FAC_NAME` for facility name.
+
+2.  
+
+```{python}
+import pandas as pd
+```
+
+```{python}
+filepath1 = "/Users/wsjsmac/Desktop/Autumn/PPHA_30538/mine/Pset_4/pos2016.csv"
+pos2016 = pd.read_csv(filepath1)
+pos2016.head()
+pos2016["year"] = 2016
+pos2016_short = pos2016[(pos2016["PRVDR_CTGRY_CD"] == 1) & (pos2016["PRVDR_CTGRY_SBTYP_CD"] == 1)]
+```
+
+
+```{python}
+# pos2016_short.shape
+# print(f"Number of facility records: {pos2016_short.shape[0]}")
+
+unique_count1 = pos2016_short['FAC_NAME'].nunique()
+unique_count2 = pos2016_short['PRVDR_NUM'].nunique()
+print(f"Number of unique PRVDR_NUM values: {unique_count2}")
+print(f"Number of unique FAC_NAME values: {unique_count1}")
+
+```
+
+
+    a. I use `FAC_NAME` and `PRVDR_NUM` respectively to calculate the unique value of the short-term hospitals. Under CMS Certification Number, there are 7245 unique hospitals in Q4 2016 data set. Under facility name, there are 6770 unique hospitals in Q4 2016 data set. I believe this number is a bit large for short-term hospitals in Q4 2016.
+
+    b. I searched for number of hospitals in 2020 to 2024 on [this website] (https://www.aha.org/statistics/fast-facts-us-hospitals), and discovers that the total number of hospitals in the United States is a little bit more than 6000, with 6039 in 2022 and 6120 in 2024. Also, [Kaiser Family Foundation] (https://www.kff.org/report-section/a-look-at-rural-hospital-closures-and-implications-for-access-to-care-three-case-studies-issue-brief/) states that, there are nearly 5000 short-term hospitals in the US.
+
+    I believe the reason behind the difference is that, some hospitals change names over the time, and even though using the unique value of `facility name`, the hospitals are still not unique.
+
+3.  
+
+```{python}
+
+
+filepath2 = "/Users/wsjsmac/Desktop/Autumn/PPHA_30538/mine/Pset_4/pos2017.csv"
+pos2017 = pd.read_csv(filepath2)
+pos2017["year"] = 2017
+pos2017_short = pos2017[(pos2017["PRVDR_CTGRY_CD"] == 1) & (pos2017["PRVDR_CTGRY_SBTYP_CD"] == 1)]
+
+
+filepath3 = "/Users/wsjsmac/Desktop/Autumn/PPHA_30538/mine/Pset_4/pos2018.csv"
+pos2018 = pd.read_csv(filepath3, encoding='ISO-8859-1')
+pos2018["year"] = 2018
+pos2018_short = pos2018[(pos2018["PRVDR_CTGRY_CD"] == 1) & (pos2018["PRVDR_CTGRY_SBTYP_CD"] == 1)]
+
+filepath4 = "/Users/wsjsmac/Desktop/Autumn/PPHA_30538/mine/Pset_4/pos2019.csv"
+pos2019 = pd.read_csv(filepath4, encoding='ISO-8859-1')
+pos2019["year"] = 2019
+pos2019_short = pos2019[(pos2019["PRVDR_CTGRY_CD"] == 1) & (pos2019["PRVDR_CTGRY_SBTYP_CD"] == 1)]
+```
+
+```{python}
+print(pos2017.head())
+print(pos2018.head())
+print(pos2019.head())
+```
+
+```{python}
+pos_merge = pd.concat([pos2016_short, pos2017_short, pos2018_short, pos2019_short], ignore_index=True)
+pos_merge.shape
+pos_merge.to_csv("pos_merge.csv", index = False)
+```
+
+
+The plot of number of observations by year is as followed.
+
+```{python}
+import altair as alt
+
+year_count = pos_merge["year"].value_counts().reset_index()
+year_count.columns = ["year", "count"]
+
+alt.Chart(year_count).mark_bar().encode(
+    x = alt.X("count:Q", title = "Number of Observations"),
+    y = alt.Y("year:N", title = "year")
+).properties(
+    title = "Number of Observations by Year"
+)
+```
+
+
 4. 
     a.
+
+```{python}
+year_count_unique = pos_merge.groupby(
+    "year")["PRVDR_NUM"].nunique().reset_index()
+year_count_unique.columns = ["year", "count"]
+
+alt.Chart(year_count_unique).mark_bar().encode(
+    x=alt.X("count:Q", title="Number of Hospitals"),
+    y=alt.Y("year:N", title="year")
+).properties(
+    title="Number of Unique Hospitals by Year"
+)
+```
+
+
     b.
+These two plots are the same. It means that the CMS certification number corresponds uniquely with the observations of hospitals.
 
 ## Identify hospital closures in POS file (15 pts) (*)
 
