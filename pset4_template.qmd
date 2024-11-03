@@ -52,6 +52,9 @@ Please refer to the minilesson on code style
     a.
     b.
 
+```{python}
+
+```
 ## Identify hospital closures in POS file (15 pts) (*)
 
 1. 
