@@ -1,5 +1,5 @@
 ---
-title: "Your Title"
+title: "Problem Set 4"
 format: 
   pdf:
     keep-tex: true
@@ -27,8 +27,8 @@ Please refer to the minilesson on code style
 ## Submission Steps (10 pts)
 1. This problem set is a paired problem set.
 2. Play paper, scissors, rock to determine who goes first. Call that person *Partner 1*.
-    - Partner 1 :Sijie Wu, sijiewu
-    - Partner 2 (Abu Bakar Siddique, abubakars):
+    - Partner 1 : Sijie Wu, sijiewu
+    - Partner 2 : Abu Bakar Siddique, abubakars
 3. Partner 1 will accept the `ps4` and then share the link it creates with their partner. You can only share it with one partner so you will not be able to change it after your partner has accepted. 
 4. "This submission is our work alone and complies with the 30538 integrity policy." Add your initials to indicate your agreement: \*\*\_\_\*\* \*\*\_\_\*\*
 5. "I have uploaded the names of anyone else other than my partner and I worked with on the problem set **[here](https://docs.google.com/forms/d/185usrCREQaUbvAXpWhChkjghdGgmAZXA3lPWpXLLsts/edit)**"  (1 point)
@@ -56,26 +56,18 @@ Please refer to the minilesson on code style
 
 ```{python}
 import pandas as pd
-```
-
-```{python}
-filepath1 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/pos2016.csv"
+filepath1 = "pos2016.csv"
 pos2016 = pd.read_csv(filepath1)
 pos2016.head()
 pos2016["year"] = 2016
 pos2016_short = pos2016[(pos2016["PRVDR_CTGRY_CD"] == 1) & (pos2016["PRVDR_CTGRY_SBTYP_CD"] == 1)]
 ```
 
-
 ```{python}
-# pos2016_short.shape
-# print(f"Number of facility records: {pos2016_short.shape[0]}")
-
 unique_count1 = pos2016_short['FAC_NAME'].nunique()
 unique_count2 = pos2016_short['PRVDR_NUM'].nunique()
 print(f"Number of unique PRVDR_NUM values: {unique_count2}")
 print(f"Number of unique FAC_NAME values: {unique_count1}")
-
 ```
 
 
@@ -85,30 +77,24 @@ print(f"Number of unique FAC_NAME values: {unique_count1}")
 
     I believe the reason behind the difference is that, some hospitals change names over the time, and even though using the unique value of `facility name`, the hospitals are still not unique.
 
-3.  
+1.  
 
 ```{python}
-filepath2 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/pos2017.csv"
+filepath2 = "pos2017.csv"
 pos2017 = pd.read_csv(filepath2)
 pos2017["year"] = 2017
 pos2017_short = pos2017[(pos2017["PRVDR_CTGRY_CD"] == 1) & (pos2017["PRVDR_CTGRY_SBTYP_CD"] == 1)]
 
 
-filepath3 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/pos2018.csv"
+filepath3 = "pos2018.csv"
 pos2018 = pd.read_csv(filepath3, encoding='ISO-8859-1')
 pos2018["year"] = 2018
 pos2018_short = pos2018[(pos2018["PRVDR_CTGRY_CD"] == 1) & (pos2018["PRVDR_CTGRY_SBTYP_CD"] == 1)]
 
-filepath4 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/pos2019.csv"
+filepath4 = "pos2019.csv"
 pos2019 = pd.read_csv(filepath4, encoding='ISO-8859-1')
 pos2019["year"] = 2019
 pos2019_short = pos2019[(pos2019["PRVDR_CTGRY_CD"] == 1) & (pos2019["PRVDR_CTGRY_SBTYP_CD"] == 1)]
-```
-
-```{python}
-print(pos2017.head())
-print(pos2018.head())
-print(pos2019.head())
 ```
 
 ```{python}
@@ -122,20 +108,23 @@ The plot of number of observations by year is as followed.
 
 ```{python}
 import altair as alt
+from altair_saver import save
 
 year_count = pos_merge["year"].value_counts().reset_index()
 year_count.columns = ["year", "count"]
 
-alt.Chart(year_count).mark_bar().encode(
+chart1 = alt.Chart(year_count).mark_bar().encode(
     x = alt.X("count:Q", title = "Number of Observations"),
     y = alt.Y("year:N", title = "year")
 ).properties(
     title = "Number of Observations by Year"
 )
+
+#save(chart1, 'chart1.png')
 ```
+![Number of Observations by Year](chart1.png)
 
-
-4. 
+1. 
     a.
 
 ```{python}
@@ -143,14 +132,16 @@ year_count_unique = pos_merge.groupby(
     "year")["PRVDR_NUM"].nunique().reset_index()
 year_count_unique.columns = ["year", "count"]
 
-alt.Chart(year_count_unique).mark_bar().encode(
+chart2 = alt.Chart(year_count_unique).mark_bar().encode(
     x=alt.X("count:Q", title="Number of Hospitals"),
     y=alt.Y("year:N", title="year")
 ).properties(
     title="Number of Unique Hospitals by Year"
 )
-```
 
+#chart2
+```
+![Number of Unique Hospitals by Year](chart2.png)
 
     b.
 These two plots are the same. It means that the CMS certification number corresponds uniquely with the observations of hospitals.
@@ -181,7 +172,6 @@ for hospital_id in hospital_active2016:
             break 
 
 hospital_close_suspect = pd.DataFrame(hospital_close_suspect)
-print(hospital_close_suspect)
 ```
 
 There are 174 hospitals fit this definition.
@@ -211,22 +201,19 @@ for _, row in active_hospitals_by_zip.iterrows():
     current_count = row["active_hospitals"]
 
     # Get count for the following year
-    next_year_data = active_hospitals_by_zip[(active_hospitals_by_zip["ZIP_CD"] == zip_code) & 
+    next_year_data = active_hospitals_by_zip[(active_hospitals_by_zip["ZIP_CD"] == zip_code) &
                                              (active_hospitals_by_zip["year"] == current_year + 1)]
-    
+
     if not next_year_data.empty:
         next_year_count = next_year_data["active_hospitals"].values[0]
-        
+
         # Check if the count does not decrease
         if next_year_count >= current_count:
             zip_codes_to_filter.append(zip_code)
 
 # Step 3: Filter out suspected closures in these ZIP codes
-corrected_closures = hospital_close_suspect[~hospital_close_suspect["ZIP_CD"].isin(zip_codes_to_filter)].reset_index()
-
-# Display the remaining suspected closures
-print(corrected_closures)
-
+corrected_closures = hospital_close_suspect[~hospital_close_suspect["ZIP_CD"].isin(
+    zip_codes_to_filter)].reset_index()
 ```
 
     a.
@@ -260,12 +247,7 @@ print(corrected_closures_top_10)
 
 ```{python}
 import geopandas as gpd
-```
-
-
-
-```{python}
-filepath1 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.dbf"
+filepath1 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.dbf"
 data1 = gpd.read_file(filepath1)
 data1.head()
 ```
@@ -273,19 +255,19 @@ data1.head()
 
 I don't know how to open and look up a .prj file, so I ask GPT "how to open the .prj file", and it offers me the `with open` code.
 ```{python}
-filepath2 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.prj"
+filepath2 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.prj"
 
 with open(filepath2, 'r') as file:
     prj_content = file.read()
     print(prj_content)
 ```
 ```{python}
-filepath3 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shp"
+filepath3 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shp"
 data3 = gpd.read_file(filepath3)
 data3.head()
 ```
 ```{python}
-filepath4 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shx"
+filepath4 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.shx"
 data4 = gpd.read_file(filepath4)
 data4.head()
 ```
@@ -295,15 +277,11 @@ I don't know how to read a .xml file either, so I asked GPT "how to open the .xm
 import xml.etree.ElementTree as ET
 
 # Replace with the path to your .xml file
-filepath5 = "/Users/naumanali/Desktop/4th Quarter/Python II/PS 4/problem-set-4-sijie-abu-bakar-main/gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.xml"
+filepath5 = "gz_2010_us_860_00_500k/gz_2010_us_860_00_500k.xml"
 
 # Parse the XML file
 tree = ET.parse(filepath5)
 root = tree.getroot()
-
-# Example: Print out the tags and text in the XML
-for elem in root.iter():
-    print(elem.tag, elem.text)
 
 ```
 
@@ -341,18 +319,12 @@ zip.shape
 ```
 
 ```{python}
-zip_tx = zip[zip["NAME"].str[:3].isin(["733"])|zip["NAME"].str[:2].isin(["75", "76", "77", "78", "79"])]
-zip_tx['ZIP_CD'] = zip_tx['ZCTA5']
-zip_tx.shape
-```
-```{python}
-zipcode_tx = zip_tx["ZIP_CD"].unique()
-zipcode_tx.shape
+zip_tx = zip[zip["NAME"].str[:3].isin(["733"]) | zip["NAME"].str[:2].isin([
+    "75", "76", "77", "78", "79"])].copy()
+zip_tx.loc[:, 'ZIP_CD'] = zip_tx['ZCTA5']
+
 ```
 
-```{python}
-pos2016_short.head()
-```
 
 Below are all the hospitals counts in zip code nationwide.
 ```{python}
@@ -368,9 +340,12 @@ pos2016_tx_zipcount
 ```
 
 ```{python}
-pos2016_tx_zipcount = pd.DataFrame(pos2016_tx_zipcount)
-pos2016_tx_zipcount['ZIP_CD'] = pos2016_tx_zipcount['ZIP_CD'].fillna(0)
-pos2016_tx_zipcount.loc[:, 'ZIP_CD'] = pos2016_tx_zipcount['ZIP_CD'].astype(int).astype(str).str.zfill(5)
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", FutureWarning)
+    pos2016_tx_zipcount = pd.DataFrame(pos2016_tx_zipcount)
+    pos2016_tx_zipcount['ZIP_CD'] = pos2016_tx_zipcount['ZIP_CD'].fillna(0)
+    pos2016_tx_zipcount.loc[:, 'ZIP_CD'] = pos2016_tx_zipcount['ZIP_CD'].astype(int).astype(str).str.zfill(5)
 ```
 
 ```{python}
@@ -391,7 +366,7 @@ choropleth_data.head()
 choropleth_data.to_csv("choropleth_data.csv", index = False)
 ```
 ```{python}
-fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+fig, ax = plt.subplots(1, 1, figsize=(4, 3))
 choropleth_data.plot(column='hospital_count', ax=ax, legend=True,
             legend_kwds={'label': "Number of Hospitals by Zip Code",
                          'orientation': "horizontal"},
@@ -492,9 +467,6 @@ for _, zip_row in zips_texas_centroids_10.iterrows():
 # Add the nearest distances to the GeoDataFrame
 zips_texas_centroids_10['nearest_hospital_distance'] = nearest_distances
 
-# View the updated GeoDataFrame
-print(zips_texas_centroids_10[['ZCTA5', 'nearest_hospital_distance']])
-
 end_time = time.time()
 print(f"Execution time: {end_time - start_time:.2f} seconds")
 ```
@@ -520,9 +492,6 @@ for _, zip_row in zips_texas_centroids.iterrows():
 # Add the nearest distances to the GeoDataFrame
 zips_texas_centroids['nearest_hospital_distance'] = nearest_distances
 
-# View the updated GeoDataFrame
-print(zips_texas_centroids[['ZCTA5', 'nearest_hospital_distance']])
-
 end_time = time.time()
 print(f"Execution time: {end_time - start_time:.2f} seconds")
 ```
@@ -543,13 +512,6 @@ It is in feet now becasue I reprojected it to EPSG:2272
 
     b.
 ```{python}
-import pandas as pd
-import geopandas as gpd
-
-# Load zip and hospital data, assuming 'zips_texas_centroids' and 'zips_withhospital_centroids' are prepared from previous steps
-
-# Ensure both GeoDataFrames are in the same projected CRS for accurate distance measurement
-# EPSG:2272 (NAD83 / Pennsylvania South (ftUS)) or another suitable Texas projection (feet)
 zips_texas_centroids = zips_texas_centroids.to_crs(epsg=2272)
 zips_withhospital_centroids = zips_withhospital_centroids.to_crs(epsg=2272)
 
@@ -575,10 +537,8 @@ print(f"Average distance to the nearest hospital in miles: {average_distance_mil
     c.
 
 ```{python}
-import matplotlib.pyplot as plt
-
 # Plot the map
-fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+fig, ax = plt.subplots(1, 1, figsize=(4, 3))
 zips_texas_centroids.plot(column='nearest_hospital_distance_miles', 
                           ax=ax, 
                           legend=True, 
@@ -625,9 +585,6 @@ closures_by_zip
 2. 
 
 ```{python}
-import geopandas as gpd
-import matplotlib.pyplot as plt
-
 # Ensure ZIP_CD in closures_by_zip and texas_zip_shapes are the same format
 zip_tx['ZIP_CD'] = zip_tx['ZIP_CD'].astype(str).str.zfill(5)
 
@@ -635,7 +592,7 @@ zip_tx['ZIP_CD'] = zip_tx['ZIP_CD'].astype(str).str.zfill(5)
 texas_closures_geo = zip_tx.merge(closures_by_zip, on='ZIP_CD', how='left').fillna(0)
 
 # Plot the choropleth map
-fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+fig, ax = plt.subplots(1, 1, figsize=(4, 3))
 texas_closures_geo.plot(column='closure_count', ax=ax, legend=True,
                         legend_kwds={'label': "Number of Closures (2016-2019)", 'orientation': "horizontal"},
                         cmap='OrRd',  # color map for the intensity of closures
@@ -656,9 +613,6 @@ print(f"Number of directly affected ZIP codes in Texas: {num_affected_zip_codes}
 3. 
 
 ```{python}
-# Ensure both the directly affected ZIP codes and Texas ZIP shapes GeoDataFrames are in the same coordinate system
-# Assuming `closures_by_zip` contains directly affected ZIP codes, and `texas_zip_shapes` contains all Texas ZIP shapes
-
 # Filter the directly affected ZIP codes from `closures_by_zip`
 affected_zips = closures_by_zip[closures_by_zip['closure_count'] > 0]['ZIP_CD'].unique()
 
@@ -731,7 +685,7 @@ category_colors = {
     'Indirectly Affected': 'orange'
 }
 
-fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+fig, ax = plt.subplots(1, 1, figsize=(4, 3))
 texas_zip_shapes.plot(column='closure_category', 
                       ax=ax, 
                       legend=True,
